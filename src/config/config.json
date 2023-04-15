@@ -1,0 +1,35 @@
+{
+  "scanMap": {
+    "file": "pbi.json",
+    "interval": 6000,
+    "worldname": "Borukva",
+    "mapname": "flat",
+    "zoom": 3,
+    "screen": {
+    "width": 2400,
+    "height": 1400
+    },
+    "image": {
+      "width": 1400,
+      "height": 1400,
+      "paddingX": 500,
+      "paddingY": 0
+    }
+  },
+  "whereis": {
+    "delay": 2500,
+    "worldname": "Borukva",
+    "mapname": "flat",
+    "zoom": 3,
+    "screen": {
+      "width": 1400,
+      "height": 1000
+    },
+    "image": {
+      "width": 1000,
+      "height": 1000,
+      "paddingX": 200,
+      "paddingY": 0
+    }
+  }
+}

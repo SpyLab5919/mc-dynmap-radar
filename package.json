@@ -1,0 +1,35 @@
+{
+  "name": "mc-dynmap-radar",
+  "version": "1.0.0",
+  "exports": "./app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "dotenv": "^16.0.1",
+    "geometric": "^2.4.0",
+    "lowdb": "^3.0.0",
+    "playwright": "^1.32.3",
+    "prettier": "^2.7.1",
+    "telegraf": "^4.8.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "main": "app.js",
+  "description": "Fork of https://github.com/danyloshamaiev/mc-dynmap-scout",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpyLab5919/mc-dynmap-radar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SpyLab5919/mc-dynmap-radar/issues"
+  },
+  "homepage": "https://github.com/SpyLab5919/mc-dynmap-radar#readme"
+}
