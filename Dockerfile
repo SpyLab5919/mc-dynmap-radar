@@ -11,11 +11,11 @@ EXPOSE 3000
 
 # Copy all app files into Docker Work directory
 COPY package*.json /app/
-COPY *.js /app/
-COPY db/ /app/db/
+COPY src/ /app
 
 # Install Deps
-RUN npm ci --only=production
+# RUN npm ci --only=production
+RUN npm install
 
 # ENV NODE_ENV production
 

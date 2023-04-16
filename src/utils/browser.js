@@ -1,14 +1,14 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import axios from "axios";
-import { chromium } from 'playwright';
+import { firefox } from 'playwright-firefox'
 import { config, mainBorder, getOuterRectangleCenter } from '../init.js';
-import * as custom from './console.js'
+import * as timestamp from './console.js'
 
 const center = getOuterRectangleCenter(mainBorder);
 
 //const mapURL = `${process.env.DYNMAP_URL}/?worldname=${param.worldname}&mapname=${param.mapname}&zoom=${param.zoom}&x=${param.x}&y=64&z=${param.z}`;
-const browser = await chromium.launch();
+const browser = await firefox.launch();
 const scanMapPage = await addNewPage(browser, center, config.scanMap);
 async function addNewPage(browser, coords, localConfig) {
 
@@ -30,9 +30,9 @@ async function addNewPage(browser, coords, localConfig) {
     );
   } catch (err) {
     const message = `Помилка підключення до ${process.env.DYNMAP_URL}`;
-    custom.error(message);
-    custom.error(err);
-    custom.error(message);
+    timestamp.error(message);
+    timestamp.error(err);
+    timestamp.error(message);
     return null;
   };
   return page;
@@ -69,7 +69,7 @@ async function captureMap() {
     }
   })
     .catch((err) => {
-      custom.error(err);
+      timestamp.error(err);
       //ctx.reply(`Виникла помилка при скріншоті`);
       return;
     });
@@ -94,7 +94,7 @@ async function captureCoords(coords, zoom = config.whereis.zoom) {
     }
   })
     .catch((err) => {
-      custom.error(err);
+      timestamp.error(err);
       return undefined;
     })
     .finally(() => secondPage?.close())

@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { Telegraf } from 'telegraf';
-import * as custom from './utils/console.js';
+import * as timestamp from './utils/console.js';
 import { captureCoords, captureMap, fetchMap } from './utils/browser.js';
 import { config, whitelist } from './init.js';
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -13,24 +13,29 @@ bot.use(async (ctx, next) => {
   //if (ctx.update.from === undefined) return; // 
   const userId = ctx.update.message?.from.id;
   const chatId = ctx.update.message?.chat.id;
+  const userName = ctx.update.message?.from.username
+  const chatName = ctx.update.message?.chat.username;
+  const command = ctx.update.message?.text;
   const update = ctx.update.message || ctx.update.callback_query;
   // userId == process.env.RIGHTFUL_USER_ID || 
-  try {
-    if (chatId == process.env.MAIN_CHAT_ID) {
-      custom.log(`${ctx.update.message?.from.username} [${userId}] використав ${ctx.update.message?.text}`);
-      await next();
-      return;
-    }
+  if (command === undefined)
+    return;
 
-    if (userId != process.env.RIGHTFUL_USER_ID || chatId != process.env.MAIN_CHAT_ID) {
-      custom.log(`${ctx.update.message?.from.username} ${userId} використав ${ctx.update.message?.text} у ${ctx.update.message?.chat.username} ${chatId}`);
-      await next();
-      return;
-    }
-    await ctx.reply('У вас немає прав.', Extra.inReplyTo(ctx.message.id));
+  if (chatId == process.env.MAIN_CHAT_ID) {
+    timestamp.log(`${userName} [${userId}] використав ${command}`);
+  } else if (userId != process.env.RIGHTFUL_USER_ID || chatId != process.env.MAIN_CHAT_ID) {
+    timestamp.log(`${userName} ${userId} використав ${command} у ${chatName} ${chatId}`);
+  }
+  else {
+    ctx.reply('Виявлено чужинця! Покиньте територію чату!');
+    timestamp.warn(`Несанкціонований доступ! ${userName} [${userId}] у ${chatName} ${chatId}`);
+    return;
+  }
+  try {
+    await next();
   } catch (err) {
     console.error(err);
-    ctx.reply(`Виникла помилка при виконанні програми`);
+    ctx.reply(`Виникла помилка при виконанні команди`);
   }
 });
 
@@ -50,7 +55,7 @@ bot.command('addplayer', (ctx) => {
   }
   const user = ctx.update.message.from.username;
 
-  custom.log(`${user} додав ${playerName} до вайтлісту.`);
+  timestamp.log(`${user} додав ${playerName} до вайтлісту.`);
   ctx.reply(`Додаю ${playerName} до вайтлісту.`);
   whitelist.push(playerName);
   db.write();
@@ -69,7 +74,7 @@ bot.command('removeplayer', (ctx) => {
   const playerIndex = whitelist.indexOf(playerName);
 
   if (playerIndex !== -1) {
-    custom.warn(`${user} видалив ${playerName} з вайтлісту.`);
+    timestamp.warn(`${user} видалив ${playerName} з вайтлісту.`);
     ctx.reply(`Видаляю ${playerName} з вайтлісту.`);
     whitelist.splice(playerIndex, 1);
   } else {
@@ -92,9 +97,13 @@ bot.command('plotnaya_vsim_nashim', async (ctx) => {
   console.log(`o/`);
   await ctx.reply(`o/`);
 })
-bot.command('сімп', async (ctx) => {
+bot.command('simp', async (ctx) => {
 
   await ctx.reply(`o/`);
+})
+
+bot.command('greet', (ctx) => {
+  ctx.reply(response, { reply_to_message_id: 1 });
 })
 
 
