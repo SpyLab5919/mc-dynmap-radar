@@ -1,0 +1,13 @@
+{ 
+  "name": "Ферма золота в Незері",
+  "worldname": "Borukva_nether",
+  "mapname": "flat",
+  "zoom": null,
+  "coords": 
+  [
+    [-100,-100],
+    [ 100,-100],
+    [ 100, 100],
+    [-100, 100]
+  ]
+}

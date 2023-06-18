@@ -1,6 +1,5 @@
 # Build Environment: Node + Playwright
-FROM node:18.15.0-buster
-FROM mcr.microsoft.com/playwright:focal
+FROM alpine:3.16
 
 # Env
 WORKDIR /app
@@ -16,6 +15,7 @@ COPY src/ /app
 # Install Deps
 # RUN npm ci --only=production
 RUN npm install
+RUN npx playwright install --with-deps firefox
 
 # ENV NODE_ENV production
 

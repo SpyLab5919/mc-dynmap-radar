@@ -1,0 +1,14 @@
+{ 
+  "name": "Спавн",
+  "worldname": "Borukva",
+  "mapname": "surface",
+  "zoom": 3,
+  "center": [53, 12],
+  "coords": 
+  [
+    [-75, -140],
+    [-75, 220],
+    [175, 220],
+    [175, -140]
+  ]
+}

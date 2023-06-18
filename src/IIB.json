@@ -1,0 +1,15 @@
+[
+  {
+    "country": "C:",
+    "borders": [
+      {
+        "name": "ПБІ",
+        "intruders": []
+      },
+      {
+        "name": "Спавн",
+        "intruders": []
+      }
+    ]
+  }
+]

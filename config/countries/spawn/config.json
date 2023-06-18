@@ -1,0 +1,17 @@
+{
+  "chatId": "-1001915528562",
+  "allowedIntrusionTime": 20000,
+
+  "scanMap": {
+    "screen": {
+      "width": 2400,
+      "height": 1000
+    },
+    "image": {
+      "width": 1200,
+      "height": 1000,
+      "paddingX": 600,
+      "paddingY": 0
+    }
+  }
+}

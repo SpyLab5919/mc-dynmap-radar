@@ -1,82 +1,136 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import dotenv from 'dotenv'
+dotenv.config()
 
-import { pointInPolygon } from 'geometric';
-import bot from './bot.js';
-import * as timestamp from './utils/console.js';
-import { config, whitelist, mainBorder } from './init.js';
-import { fetchMap } from './utils/browser.js';
+import { pointInPolygon } from 'geometric'
+import * as timestamp from './utils/console.js'
 
-timestamp.log("Бота запущено");
-bot.telegram.sendMessage(process.env.RIGHTFUL_USER_ID, "Бота запущено");
+import { __dirname, countries, mainConfig } from './init.js'
+import { fetchMap } from './utils/browser.js'
 
-let interval = config.scanMap.interval;
-let intrudersInBorders = [];
+let IIB = await openDb(`${__dirname}/IIB.json`)
+if (!IIB.data) {
+  IIB.data = []
+}
+import { alert, cancel } from './bot.js'
+import openDb from './utils/db.js'
 
-loop(scanMap);
+let index = 0
+countries.forEach((country) => {
+  if (IIB.data.filter(saved => saved.country === country.name).length == 0)
+    IIB.data.push({ "country": country.name, "borders": [] })
+  country.borders.forEach((border) => {
+    if (IIB.data[index].borders.filter(b => b.name === border.name).length == 0)
+      IIB.data[index].borders.push({ "name": border.name, "intruders": [] })
+  })
+  index++
+})
+
+IIB.write(IIB.data)
+
+let hiddenPlayers = [], currentIntruders = [], index_IIB
+
+//loop(intrusionScan, mainConfig.intrusion.interval)
 
 
-async function loop(func) {
-  await func();
-  setInterval(await func, config.scanMap.interval);
+async function loop(func, interval) {
+  await func()
+  setInterval(await func, interval)
 }
 
-async function scanMap() {
+async function intrusionScan() {
   let res = await fetchMap().catch((err) => {
-    if (err.code === 'ECONNRESET')
-      timestamp.error(`Сокет не відповів`);
-    else
-      timestamp.error(err);
-  });
-  
+    switch (err.code) {
+      case ('ECONNREFUSED'):
+        timestamp.warn("Сервер вимкнутий"); break
+      case ('ECONNRESET'):
+        timestamp.error("Сокет не відповів"); break
+      case ('EAI_AGAIN'):
+        timestamp.error("Нема з'єднання"); break
+      default:
+        timestamp.error(err)
+    }
+  })
+
   try {
-    let intruders = [];
-    res?.data.players.forEach((player) => {
-      if (player?.world !== 'Borukva') return;
-      if (whitelist.indexOf(player.name) !== -1) return;
-
-      let index = intrudersInBorders.map(e => e.name).indexOf(player.name);
-      if (index === -1) {
-        if (pointInPolygon([player.x, player.z], mainBorder)) {
-          intruders.push(player);
-        }
-      } else {
-        intrudersInBorders[index] = player;
+    hiddenPlayers = []
+    countries.forEach((country) => {
+      currentIntruders[country.name] = []
+      Object.keys(country.borders).forEach((key) => {
+        currentIntruders[country.name][key] = []
+      })
+    })
+    // console.table (intrudersInBorders)
+    res?.data.players.forEach(async (player) => {
+      if (player === undefined) return
+      if (player.world === '-some-other-bogus-world-') {
+        hiddenPlayers.push(player)
       }
-    });
+      countries.forEach(async (country) => {
+        if (isInWhitelist(player, country.whitelist) == true) return
 
-    intruders.forEach((intruder) => {
-      intrudersInBorders.push(intruder);
-      alert(intruder);
-    });
+        let countryIndex = findIndexByProperty(IIB.data, "country", country.name)
 
-    intrudersInBorders.forEach((intruder) => {
-      if (intruder.world === "Borukva")
-        if (pointInPolygon([intruder.x, intruder.z], mainBorder))
-          return;
-      intrudersInBorders.pop(intruder);
-      cancel(intruder)
-    });
+        country.borders.forEach(async (border) => {
+          if (player.world !== border.worldname) return
+          const borderIndex = findIndexByProperty(IIB.data[countryIndex].borders, "name", border.name)
+          const IIB_data_border_intruders = IIB.data[countryIndex].borders[borderIndex].intruders
+          const intruderIndex = IIB_data_border_intruders.findIndex(
+            (intruder) => intruder.name === player.name
+          )
+
+          if (pointInPolygon([player.x, player.z], border.coords)) {
+            if (intruderIndex == -1) {
+              if (country.config.allowedIntrusionTime == 0) {
+                await alert(player, border.name, country.config.chatId)
+                player.isAlerted = true
+              } else {
+                player.isAlerted = false
+              }
+              player.time = Date.now()
+              IIB_data_border_intruders.push(player)
+
+            } else {
+              if (Date.now() > IIB_data_border_intruders[intruderIndex].time + country.config.allowedIntrusionTime)
+                if (!IIB_data_border_intruders[intruderIndex].isAlerted) {
+                  await alert(player, border.name, country.config.chatId)
+                  IIB_data_border_intruders[intruderIndex].isAlerted = true
+                }
+              player.time = IIB_data_border_intruders[intruderIndex].time
+              player.isAlerted = IIB_data_border_intruders[intruderIndex].isAlerted
+              IIB_data_border_intruders[intruderIndex] = player
+            }
+          } // if not in border
+          else {
+            if (intruderIndex !== -1) {
+              if (IIB_data_border_intruders[intruderIndex].isAlerted)
+                await cancel(player, border.name, country.config.chatId)
+              IIB.data[countryIndex].borders[borderIndex].intruders = IIB_data_border_intruders.slice(0,intruderIndex).concat(IIB_data_border_intruders.slice(intruderIndex + 1, IIB_data_border_intruders.length))
+            }
+          }
+        })
+      })
+    })
+    IIB.write()
   } catch (err) {
-    timestamp.error(err);
-  };
+    timestamp.error(err)
+  }
 }
-
-async function alert(intruder) {
-  const message =
-    `Станція виявила порушника!\n` +
-    `${intruder.name} - [${intruder.x}, ${intruder.y}, ${intruder.z}]`;
-    
-  await new Promise(resolve => setTimeout(resolve, 1_000));
-  bot.telegram.sendMessage(process.env.MAIN_CHAT_ID, message);
-  timestamp.log(`${intruder.name} проник всередину ${config.scanMap.file}`);
-}
-
-function cancel(intruder) {
-  const message = `${intruder.name} покинув радіус дії станції`;
-  bot.telegram.sendMessage(process.env.MAIN_CHAT_ID, message);
-  timestamp.log(`${intruder.name} вийшов за межі ${config.scanMap.file}`);
-
+function findIndexByProperty(data, key, value) {
+  for (var i = 0; i < data.length; i++) {
+    if (data[i][key] == value) {
+      return i
+    }
+  }
+  return -1
 }
 
 
+function isInWhitelist(player, whitelist) {
+  for (let i = 0; i < whitelist.length; i++) {
+    if (player.name == whitelist[i].name
+      || player.name == whitelist[i].twink) {
+      return true
+    }
+  }
+  return false
+}

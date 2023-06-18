@@ -1,22 +1,25 @@
 {
   "name": "mc-dynmap-radar",
   "version": "1.0.0",
-  "exports": "./app.js",
+  "exports": null,
   "type": "module",
   "scripts": {
-    "start": "node app.js",
+    "start": "node src/app.js",
+    "dev": "nodemon -i \"*.json\" -i \"*.txt\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "app-root-path": "^3.1.0",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "geometric": "^2.4.0",
     "lowdb": "^3.0.0",
     "playwright-firefox": "^1.32.3",
     "prettier": "^2.7.1",
+    "systemjs": "^6.14.1",
     "telegraf": "^4.8.6"
   },
   "devDependencies": {
@@ -31,5 +34,16 @@
   "bugs": {
     "url": "https://github.com/SpyLab5919/mc-dynmap-radar/issues"
   },
-  "homepage": "https://github.com/SpyLab5919/mc-dynmap-radar#readme"
+  "homepage": "https://github.com/SpyLab5919/mc-dynmap-radar#readme",
+  "nodemonConfig": {
+    "name": "nodemon",
+    "homepage": "http://nodemon.io",
+    "...": "... other standard package.json values",
+    "nodemonConfig": {
+      "ignore": [
+        "./test/**"
+      ],
+      "delay": 2500
+    }
+  }
 }
